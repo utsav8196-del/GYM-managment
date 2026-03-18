@@ -147,10 +147,16 @@ const quickPanels = [
     image: '/images/personal-training.jpg',
   },
   {
+    title: 'Manage Courses',
+    text: 'Create, update, and organize your training courses.',
+    href: '/admin/courses',
+    image: '/images/group-training.jpg',
+  },
+  {
     title: 'Admin Profile',
     text: 'Maintain your account details and preferences.',
     href: '/profile',
-    image: '/images/group-training.jpg',
+    image: '/images/about-trainer.jpg',
   },
 ];
 

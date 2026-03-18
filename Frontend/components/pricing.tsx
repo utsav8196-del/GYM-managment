@@ -101,7 +101,7 @@ export function Pricing() {
           className="mb-16 text-center"
         >
           <span className="mb-3 inline-block text-sm font-medium uppercase tracking-[0.3em] text-primary">
-            Plans
+            Plans     
           </span>
           <h2 className="text-4xl font-bold uppercase tracking-tight text-foreground lg:text-5xl text-balance">
             Pricing

@@ -17,14 +17,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-type Service = {
+type Course = {
   _id: string;
   title: string;
   description: string;
-  icon: 'Dumbbell' | 'Flame' | 'HeartPulse';
-  image?: string;
-  shortText?: string;
-  highlights?: string[];
+  image: string;
+  type: 'personal' | 'group';
   order: number;
   createdAt?: string;
   updatedAt?: string;
@@ -36,26 +34,22 @@ type ApiResponse<T> = {
   data?: T | T[];
 };
 
-type ServiceForm = {
+type CourseForm = {
   title: string;
   description: string;
-  icon: 'Dumbbell' | 'Flame' | 'HeartPulse';
   image: string;
-  shortText: string;
-  highlightsText: string;
+  type: 'personal' | 'group';
   order: string;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-const ICON_OPTIONS: Array<ServiceForm['icon']> = ['Dumbbell', 'Flame', 'HeartPulse'];
+const TYPE_OPTIONS: Array<'personal' | 'group'> = ['personal', 'group'];
 
-const emptyForm: ServiceForm = {
+const emptyForm: CourseForm = {
   title: '',
   description: '',
-  icon: 'Dumbbell',
   image: '',
-  shortText: '',
-  highlightsText: '',
+  type: 'personal',
   order: '0',
 };
 
@@ -66,21 +60,12 @@ const formatDateTime = (value?: string) => {
   return parsed.toLocaleString();
 };
 
-const parseHighlights = (value: string) =>
-  value
-    .split(/\n|,/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .slice(0, 6);
-
-const toFormState = (service: Service): ServiceForm => ({
-  title: service.title || '',
-  description: service.description || '',
-  icon: service.icon || 'Dumbbell',
-  image: service.image || '',
-  shortText: service.shortText || '',
-  highlightsText: Array.isArray(service.highlights) ? service.highlights.join('\n') : '',
-  order: String(service.order ?? 0),
+const toFormState = (course: Course): CourseForm => ({
+  title: course.title || '',
+  description: course.description || '',
+  image: course.image || '',
+  type: course.type || 'personal',
+  order: String(course.order ?? 0),
 });
 
 async function parseApiError(res: Response) {
@@ -92,18 +77,18 @@ async function parseApiError(res: Response) {
   }
 }
 
-export default function AdminServicesPage() {
+export default function AdminCoursesPage() {
   const { token, user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [services, setServices] = useState<Service[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState('');
   const [editingId, setEditingId] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
 
-  const [form, setForm] = useState<ServiceForm>(emptyForm);
+  const [form, setForm] = useState<CourseForm>(emptyForm);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -119,12 +104,12 @@ export default function AdminServicesPage() {
 
     let active = true;
 
-    const loadServices = async () => {
+    const loadCourses = async () => {
       setLoading(true);
       setError('');
 
       try {
-        const res = await fetch(`${API_URL}/services/admin/all`, {
+        const res = await fetch(`${API_URL}/courses`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -136,14 +121,14 @@ export default function AdminServicesPage() {
           throw new Error(message);
         }
 
-        const payload = (await res.json()) as ApiResponse<Service>;
+        const payload = (await res.json()) as ApiResponse<Course>;
         const list = Array.isArray(payload.data) ? payload.data : [];
         if (active) {
-          setServices(list);
+          setCourses(list);
         }
       } catch (err) {
         if (!active) return;
-        setError(err instanceof Error ? err.message : 'Failed to load services');
+        setError(err instanceof Error ? err.message : 'Failed to load courses');
       } finally {
         if (active) {
           setLoading(false);
@@ -151,22 +136,22 @@ export default function AdminServicesPage() {
       }
     };
 
-    void loadServices();
+    void loadCourses();
 
     return () => {
       active = false;
     };
   }, [authLoading, token, user?._id, user?.role, reloadCount]);
 
-  const sortedServices = useMemo(
+  const sortedCourses = useMemo(
     () =>
-      [...services].sort((a, b) => {
+      [...courses].sort((a, b) => {
         if (a.order === b.order) {
           return a.title.localeCompare(b.title);
         }
         return a.order - b.order;
       }),
-    [services]
+    [courses]
   );
 
   const resetForm = () => {
@@ -177,7 +162,7 @@ export default function AdminServicesPage() {
   const validateForm = () => {
     if (form.title.trim().length < 3) return 'Title must be at least 3 characters long';
     if (form.description.trim().length < 10) return 'Description must be at least 10 characters long';
-    if (!ICON_OPTIONS.includes(form.icon)) return 'Choose a valid icon';
+    if (!TYPE_OPTIONS.includes(form.type)) return 'Choose a valid type';
     if (!Number.isFinite(Number(form.order))) return 'Order must be a valid number';
     return '';
   };
@@ -200,14 +185,12 @@ export default function AdminServicesPage() {
       const payload = {
         title: form.title.trim(),
         description: form.description.trim(),
-        icon: form.icon,
         image: form.image.trim(),
-        shortText: form.shortText.trim(),
-        highlights: parseHighlights(form.highlightsText),
+        type: form.type,
         order: Number(form.order),
       };
 
-      const endpoint = isEditMode ? `${API_URL}/services/${editingId}` : `${API_URL}/services`;
+      const endpoint = isEditMode ? `${API_URL}/courses/${editingId}` : `${API_URL}/courses`;
       const method = isEditMode ? 'PUT' : 'POST';
 
       const res = await fetch(endpoint, {
@@ -224,37 +207,36 @@ export default function AdminServicesPage() {
         throw new Error(message);
       }
 
-      setSuccess(isEditMode ? 'Service updated successfully' : 'Service created successfully');
-      // notify other components (e.g. public services page) that list changed
-      window.dispatchEvent(new Event('servicesModified'));
+      setSuccess(isEditMode ? 'Course updated successfully' : 'Course created successfully');
+      window.dispatchEvent(new Event('coursesModified'));
       resetForm();
       setReloadCount((current) => current + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save service');
+      setError(err instanceof Error ? err.message : 'Failed to save course');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleEdit = (service: Service) => {
+  const handleEdit = (course: Course) => {
     setError('');
     setSuccess('');
-    setEditingId(service._id);
-    setForm(toFormState(service));
+    setEditingId(course._id);
+    setForm(toFormState(course));
   };
 
-  const handleDelete = async (service: Service) => {
+  const handleDelete = async (course: Course) => {
     if (!token || !user || user.role !== 'admin') return;
 
-    const shouldDelete = window.confirm(`Delete "${service.title}"? This action cannot be undone.`);
+    const shouldDelete = window.confirm(`Delete "${course.title}"? This action cannot be undone.`);
     if (!shouldDelete) return;
 
-    setDeletingId(service._id);
+    setDeletingId(course._id);
     setError('');
     setSuccess('');
 
     try {
-      const res = await fetch(`${API_URL}/services/${service._id}`, {
+      const res = await fetch(`${API_URL}/courses/${course._id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -266,14 +248,14 @@ export default function AdminServicesPage() {
         throw new Error(message);
       }
 
-      setSuccess('Service deleted successfully');
-      window.dispatchEvent(new Event('servicesModified'));
+      setSuccess('Course deleted successfully');
+      window.dispatchEvent(new Event('coursesModified'));
       setReloadCount((current) => current + 1);
-      if (editingId === service._id) {
+      if (editingId === course._id) {
         resetForm();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete service');
+      setError(err instanceof Error ? err.message : 'Failed to delete course');
     } finally {
       setDeletingId('');
     }
@@ -284,7 +266,7 @@ export default function AdminServicesPage() {
       <section className="flex min-h-screen items-center justify-center bg-secondary py-24">
         <div className="text-center">
           <Loader2 className="mx-auto animate-spin text-primary" size={36} />
-          <p className="mt-4 text-sm text-muted-foreground">Loading service manager...</p>
+          <p className="mt-4 text-sm text-muted-foreground">Loading course manager...</p>
         </div>
       </section>
     );
@@ -298,7 +280,7 @@ export default function AdminServicesPage() {
         <div className="w-full max-w-lg border border-border bg-card p-8 text-center">
           <ShieldAlert size={34} className="mx-auto mb-4 text-primary" />
           <h1 className="text-2xl font-bold uppercase tracking-tight text-foreground">Access Restricted</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Only admin users can manage services.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Only admin users can manage courses.</p>
           <Link href="/" className="mt-6 inline-flex text-xs font-semibold uppercase tracking-wider text-primary hover:underline">
             Back To Home
           </Link>
@@ -320,9 +302,9 @@ export default function AdminServicesPage() {
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Admin Services</p>
-            <h1 className="mt-2 text-3xl font-bold uppercase tracking-tight text-foreground">Service CRUD Manager</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Create, update, and delete services with live MongoDB persistence.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Admin Courses</p>
+            <h1 className="mt-2 text-3xl font-bold uppercase tracking-tight text-foreground">Course CRUD Manager</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Create, update, and delete courses with live MongoDB persistence.</p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -353,7 +335,7 @@ export default function AdminServicesPage() {
           <div className="border border-border bg-card p-6">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-bold uppercase tracking-wide text-foreground">
-                {isEditMode ? 'Update Service' : 'Add New Service'}
+                {isEditMode ? 'Update Course' : 'Add New Course'}
               </h2>
               {isEditMode && (
                 <button
@@ -373,7 +355,7 @@ export default function AdminServicesPage() {
                   value={form.title}
                   onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
                   className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                  placeholder="Personal Training"
+                  placeholder="Personal Training Course"
                   required
                 />
               </div>
@@ -385,27 +367,27 @@ export default function AdminServicesPage() {
                   onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
                   rows={4}
                   className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                  placeholder="Write service details..."
+                  placeholder="Write course details..."
                   required
                 />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Icon</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Type</label>
                   <select
-                    value={form.icon}
+                    value={form.type}
                     onChange={(e) =>
                       setForm((current) => ({
                         ...current,
-                        icon: e.target.value as ServiceForm['icon'],
+                        type: e.target.value as CourseForm['type'],
                       }))
                     }
                     className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
                   >
-                    {ICON_OPTIONS.map((icon) => (
-                      <option key={icon} value={icon}>
-                        {icon}
+                    {TYPE_OPTIONS.map((type) => (
+                      <option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
                       </option>
                     ))}
                   </select>
@@ -428,28 +410,7 @@ export default function AdminServicesPage() {
                   value={form.image}
                   onChange={(e) => setForm((current) => ({ ...current, image: e.target.value }))}
                   className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                  placeholder="/images/personal-training.jpg"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Short Text</label>
-                <input
-                  value={form.shortText}
-                  onChange={(e) => setForm((current) => ({ ...current, shortText: e.target.value }))}
-                  className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                  placeholder="Strength and resistance coaching"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Highlights</label>
-                <textarea
-                  value={form.highlightsText}
-                  onChange={(e) => setForm((current) => ({ ...current, highlightsText: e.target.value }))}
-                  rows={4}
-                  className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                  placeholder={'One per line or comma separated\n1-on-1 Coaching\nProgram Tracking'}
+                  placeholder="/images/course.jpg"
                 />
               </div>
 
@@ -459,70 +420,56 @@ export default function AdminServicesPage() {
                 className="inline-flex w-full items-center justify-center gap-2 bg-primary px-4 py-3 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/80 disabled:opacity-70"
               >
                 {submitting ? <Loader2 size={14} className="animate-spin" /> : isEditMode ? <Save size={14} /> : <Plus size={14} />}
-                {isEditMode ? 'Update Service' : 'Create Service'}
+                {isEditMode ? 'Update Course' : 'Create Course'}
               </button>
             </form>
           </div>
 
           <div className="border border-border bg-card p-6">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-bold uppercase tracking-wide text-foreground">Current Services</h2>
+              <h2 className="text-lg font-bold uppercase tracking-wide text-foreground">Current Courses</h2>
               <span className="border border-border bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {sortedServices.length} Total
+                {sortedCourses.length} Total
               </span>
             </div>
 
-            {sortedServices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No services yet. Add your first service from the form.</p>
+            {sortedCourses.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No courses yet. Add your first course from the form.</p>
             ) : (
               <div className="space-y-3">
-                {sortedServices.map((service) => (
-                  <article key={service._id} className="border border-border bg-secondary p-4">
+                {sortedCourses.map((course) => (
+                  <article key={course._id} className="border border-border bg-secondary p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">{service.title}</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">{course.title}</h3>
                         <p className="mt-1 text-xs uppercase tracking-wider text-primary">
-                          {service.icon} | order {service.order}
+                          {course.type} | order {course.order}
                         </p>
                       </div>
 
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleEdit(service)}
+                          onClick={() => handleEdit(course)}
                           className="inline-flex items-center gap-1 border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary"
                         >
                           <PencilLine size={12} />
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(service)}
-                          disabled={deletingId === service._id}
+                          onClick={() => handleDelete(course)}
+                          disabled={deletingId === course._id}
                           className="inline-flex items-center gap-1 border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-red-300 hover:bg-red-500/20 disabled:opacity-60"
                         >
-                          {deletingId === service._id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                          {deletingId === course._id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                           Delete
                         </button>
                       </div>
                     </div>
 
-                    <p className="mt-3 text-sm text-muted-foreground">{service.description}</p>
-                    {!!service.shortText && <p className="mt-2 text-xs text-primary">{service.shortText}</p>}
-
-                    {Array.isArray(service.highlights) && service.highlights.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {service.highlights.map((item) => (
-                          <span
-                            key={`${service._id}-${item}`}
-                            className="border border-border bg-card px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <p className="mt-3 text-sm text-muted-foreground">{course.description}</p>
 
                     <p className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Updated: {formatDateTime(service.updatedAt)}
+                      Updated: {formatDateTime(course.updatedAt)}
                     </p>
                   </article>
                 ))}
