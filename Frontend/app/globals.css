@@ -85,6 +85,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -98,13 +99,50 @@ html {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: #0b0b0b;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #e84545;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #ff6b6b;
+}
+/* Frontend/app/globals.css (append at end) */
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+
+  .custom-cursor-dot,
+  .custom-cursor-ring {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .custom-cursor-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #ff2d2d;
+    z-index: 9999;
+    transition: opacity 0.15s ease;
+  }
+
+  .custom-cursor-ring {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 45, 45, 0.7);
+    box-shadow: 0 0 24px rgba(255, 45, 45, 0.35);
+    z-index: 9998;
+    transition: transform 0.18s ease, opacity 0.2s ease;
+  }
 }

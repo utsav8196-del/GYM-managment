@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/context/AuthContext"
+import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, Menu, X } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import {Particles} from "./particles";  
+
 
 type NavChild = {
   label: string
@@ -264,7 +266,9 @@ export function Navbar() {
             {mobileOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </nav>
-      </motion.header>
+      </motion.header> 
+
+     
 
       <AnimatePresence>
         {mobileOpen && (

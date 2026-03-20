@@ -10,7 +10,19 @@ exports.getAllCourses = catchAsync(async (req, res, next) => {
 
 // Admin: create (with image upload)
 exports.createCourse = catchAsync(async (req, res, next) => {
-  if (req.file) req.body.image = req.file.path; // store path
+  if (req.file) req.body.image = req.file.path;
+
+  if (req.body.price !== undefined) {
+    req.body.price = Number(req.body.price);
+  }
+  if (!Number.isFinite(req.body.price) || req.body.price <= 0) {
+    return next(new AppError('Price must be a number greater than 0', 400));
+  }
+
+  if (req.body.order !== undefined) {
+    req.body.order = Number(req.body.order);
+  }
+
   const course = await Course.create(req.body);
   res.status(201).json({ status: 'success', data: course });
 });
@@ -18,6 +30,18 @@ exports.createCourse = catchAsync(async (req, res, next) => {
 // Admin: update
 exports.updateCourse = catchAsync(async (req, res, next) => {
   if (req.file) req.body.image = req.file.path;
+
+  if (req.body.price !== undefined) {
+    req.body.price = Number(req.body.price);
+    if (!Number.isFinite(req.body.price) || req.body.price <= 0) {
+      return next(new AppError('Price must be a number greater than 0', 400));
+    }
+  }
+
+  if (req.body.order !== undefined) {
+    req.body.order = Number(req.body.order);
+  }
+
   const course = await Course.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,

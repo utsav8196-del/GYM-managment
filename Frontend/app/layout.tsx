@@ -6,6 +6,7 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext';
+import { CustomCursor } from '@/components/custom-cursor'
 
 const oswald = Oswald({
   subsets: ['latin'],
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <CustomCursor />
         <AuthProvider>
           <Navbar />
           <main>{children}</main>
