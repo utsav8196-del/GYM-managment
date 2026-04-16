@@ -3,16 +3,32 @@ import { notFound } from "next/navigation"
 import { CourseDetail } from "@/components/course-detail"
 
 interface CoursePageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
+}
+
+const getApiUrl = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  if (!apiUrl) {
+    throw new Error("NEXT_PUBLIC_API_URL is not configured. Set it in Vercel environment variables.")
+  }
+  return apiUrl
 }
 
 export async function generateMetadata({ params }: CoursePageProps): Promise<Metadata> {
-  const { id } = await params
+  const { id } = params
+  const apiUrl = getApiUrl()
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${id}`, {
+    const res = await fetch(`${apiUrl}/courses/${id}`, {
       cache: 'no-store'
     })
+
+    if (!res.ok) {
+      return {
+        title: "Course Not Found | Zacson Fitness"
+      }
+    }
+
     const data = await res.json()
     const course = data.data
 
@@ -34,12 +50,18 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
 }
 
 export default async function CoursePage({ params }: CoursePageProps) {
-  const { id } = await params
+  const { id } = params
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses/${id}`, {
+    const apiUrl = getApiUrl()
+    const res = await fetch(`${apiUrl}/courses/${id}`, {
       cache: 'no-store'
     })
+
+    if (!res.ok) {
+      notFound()
+    }
+
     const data = await res.json()
     const course = data.data
 
