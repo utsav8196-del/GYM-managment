@@ -24,6 +24,11 @@ type Course = {
   image: string;
   type: 'personal' | 'group';
   order: number;
+  prices: {
+    lower: number;
+    medium: number;
+    higher: number;
+  };
   createdAt?: string;
   updatedAt?: string;
 };
@@ -40,6 +45,9 @@ type CourseForm = {
   image: string;
   type: 'personal' | 'group';
   order: string;
+  lowerPrice: string;
+  mediumPrice: string;
+  higherPrice: string;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
@@ -51,6 +59,9 @@ const emptyForm: CourseForm = {
   image: '',
   type: 'personal',
   order: '0',
+  lowerPrice: '',
+  mediumPrice: '',
+  higherPrice: '',
 };
 
 const formatDateTime = (value?: string) => {
@@ -66,6 +77,9 @@ const toFormState = (course: Course): CourseForm => ({
   image: course.image || '',
   type: course.type || 'personal',
   order: String(course.order ?? 0),
+  lowerPrice: String(course.prices?.lower ?? ''),
+  mediumPrice: String(course.prices?.medium ?? ''),
+  higherPrice: String(course.prices?.higher ?? ''),
 });
 
 async function parseApiError(res: Response) {
@@ -164,6 +178,14 @@ export default function AdminCoursesPage() {
     if (form.description.trim().length < 10) return 'Description must be at least 10 characters long';
     if (!TYPE_OPTIONS.includes(form.type)) return 'Choose a valid type';
     if (!Number.isFinite(Number(form.order))) return 'Order must be a valid number';
+    const lowerNum = Number(form.lowerPrice);
+    const mediumNum = Number(form.mediumPrice);
+    const higherNum = Number(form.higherPrice);
+    if (!Number.isFinite(lowerNum) || lowerNum <= 0) return 'Lower price must be a number greater than 0';
+    if (!Number.isFinite(mediumNum) || mediumNum <= 0) return 'Medium price must be a number greater than 0';
+    if (!Number.isFinite(higherNum) || higherNum <= 0) return 'Higher price must be a number greater than 0';
+    if (lowerNum >= mediumNum) return 'Lower price must be less than medium price';
+    if (mediumNum >= higherNum) return 'Medium price must be less than higher price';
     return '';
   };
 
@@ -188,6 +210,9 @@ export default function AdminCoursesPage() {
         image: form.image.trim(),
         type: form.type,
         order: Number(form.order),
+        lowerPrice: Number(form.lowerPrice),
+        mediumPrice: Number(form.mediumPrice),
+        higherPrice: Number(form.higherPrice),
       };
 
       const endpoint = isEditMode ? `${API_URL}/courses/${editingId}` : `${API_URL}/courses`;
@@ -414,6 +439,45 @@ export default function AdminCoursesPage() {
                 />
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lower Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={form.lowerPrice}
+                    onChange={(e) => setForm((current) => ({ ...current, lowerPrice: e.target.value }))}
+                    className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    placeholder="99.00"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Medium Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={form.mediumPrice}
+                    onChange={(e) => setForm((current) => ({ ...current, mediumPrice: e.target.value }))}
+                    className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    placeholder="149.00"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Higher Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={form.higherPrice}
+                    onChange={(e) => setForm((current) => ({ ...current, higherPrice: e.target.value }))}
+                    className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    placeholder="199.00"
+                    required
+                  />
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={submitting}
@@ -467,6 +531,14 @@ export default function AdminCoursesPage() {
                     </div>
 
                     <p className="mt-3 text-sm text-muted-foreground">{course.description}</p>
+
+                    {course.prices && (
+                      <div className="mt-3 flex gap-4 text-xs">
+                        <span className="font-semibold text-primary">Lower: ${course.prices.lower}</span>
+                        <span className="font-semibold text-primary">Medium: ${course.prices.medium}</span>
+                        <span className="font-semibold text-primary">Higher: ${course.prices.higher}</span>
+                      </div>
+                    )}
 
                     <p className="mt-3 text-[11px] uppercase tracking-wider text-muted-foreground">
                       Updated: {formatDateTime(course.updatedAt)}

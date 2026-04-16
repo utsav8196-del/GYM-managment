@@ -27,7 +27,9 @@ export function Courses() {
     type: "personal" as "personal" | "group",
     image: "",
     order: "0",
-    price: "",
+    lowerPrice: "",
+    mediumPrice: "",
+    higherPrice: "",
   })
   const [error, setError] = useState("")
 
@@ -66,8 +68,14 @@ export function Courses() {
     if (addForm.title.trim().length < 3) return "Title must be at least 3 characters"
     if (addForm.description.trim().length < 10) return "Description must be at least 10 characters"
     if (!["personal", "group"].includes(addForm.type)) return "Choose a valid type"
-    const priceNum = Number(addForm.price)
-    if (!Number.isFinite(priceNum) || priceNum <= 0) return "Price must be a number greater than 0"
+    const lowerNum = Number(addForm.lowerPrice)
+    const mediumNum = Number(addForm.mediumPrice)
+    const higherNum = Number(addForm.higherPrice)
+    if (!Number.isFinite(lowerNum) || lowerNum <= 0) return "Lower price must be a number greater than 0"
+    if (!Number.isFinite(mediumNum) || mediumNum <= 0) return "Medium price must be a number greater than 0"
+    if (!Number.isFinite(higherNum) || higherNum <= 0) return "Higher price must be a number greater than 0"
+    if (lowerNum >= mediumNum) return "Lower price must be less than medium price"
+    if (mediumNum >= higherNum) return "Medium price must be less than higher price"
     return ""
   }
 
@@ -90,7 +98,9 @@ export function Courses() {
         image: addForm.image.trim(),
         type: addForm.type,
         order: Number(addForm.order),
-        price: Number(addForm.price),
+        lowerPrice: Number(addForm.lowerPrice),
+        mediumPrice: Number(addForm.mediumPrice),
+        higherPrice: Number(addForm.higherPrice),
       }
 
       const res = await fetch(`${API_URL}/courses`, {
@@ -116,12 +126,14 @@ export function Courses() {
         type: "personal",
         image: "",
         order: "0",
-        price: "",
+        lowerPrice: "",
+        mediumPrice: "",
+        higherPrice: "",
       })
       setShowAddForm(false)
       window.dispatchEvent(new Event("coursesModified"))
 
-      router.push("/pricing")
+      router.push("/courses")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add course")
     } finally {
@@ -229,19 +241,49 @@ export function Courses() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Price
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={addForm.price}
-                  onChange={(e) => setAddForm((prev) => ({ ...prev, price: e.target.value }))}
-                  className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
-                  placeholder="299.00"
-                  required
-                />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Lower Price
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={addForm.lowerPrice}
+                    onChange={(e) => setAddForm((prev) => ({ ...prev, lowerPrice: e.target.value }))}
+                    className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    placeholder="99.00"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Medium Price
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={addForm.mediumPrice}
+                    onChange={(e) => setAddForm((prev) => ({ ...prev, mediumPrice: e.target.value }))}
+                    className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    placeholder="149.00"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Higher Price
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={addForm.higherPrice}
+                    onChange={(e) => setAddForm((prev) => ({ ...prev, higherPrice: e.target.value }))}
+                    className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    placeholder="199.00"
+                    required
+                  />
+                </div>
               </div>
               <button
                 type="submit"
@@ -290,16 +332,16 @@ export function Courses() {
                       {course.title}
                     </h3>
                     <p className="mb-4 leading-relaxed text-muted-foreground">{course.description}</p>
-                    {course.price ? (
+                    {course.prices ? (
                       <p className="mb-6 text-sm font-semibold uppercase tracking-widest text-primary">
-                        ${course.price}
+                        ${course.prices.lower} - ${course.prices.higher}
                       </p>
                     ) : null}
                     <Link
-                      href="/pricing"
+                      href={`/courses/${course._id}`}
                       className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary transition-all duration-300 group-hover:gap-4"
                     >
-                      View Courses <ArrowRight size={16} />
+                      View Details <ArrowRight size={16} />
                     </Link>
                   </div>
                 </motion.div>

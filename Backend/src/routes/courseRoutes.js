@@ -8,6 +8,7 @@ const router = express.Router();
 
 // Public
 router.get('/', courseController.getAllCourses);
+router.get('/:id', courseController.getCourse);
 
 // Admin
 router.use(protect, restrictTo('admin'));

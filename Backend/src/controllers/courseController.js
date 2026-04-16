@@ -8,15 +8,37 @@ exports.getAllCourses = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: courses });
 });
 
+// Public: get single course
+exports.getCourse = catchAsync(async (req, res, next) => {
+  const course = await Course.findById(req.params.id);
+  if (!course) return next(new AppError('Course not found', 404));
+  res.status(200).json({ status: 'success', data: course });
+});
+
 // Admin: create (with image upload)
 exports.createCourse = catchAsync(async (req, res, next) => {
   if (req.file) req.body.image = req.file.path;
 
-  if (req.body.price !== undefined) {
-    req.body.price = Number(req.body.price);
+  // Handle prices object
+  if (req.body.lowerPrice !== undefined || req.body.mediumPrice !== undefined || req.body.higherPrice !== undefined) {
+    req.body.prices = {
+      lower: Number(req.body.lowerPrice),
+      medium: Number(req.body.mediumPrice),
+      higher: Number(req.body.higherPrice),
+    };
+    delete req.body.lowerPrice;
+    delete req.body.mediumPrice;
+    delete req.body.higherPrice;
   }
-  if (!Number.isFinite(req.body.price) || req.body.price <= 0) {
-    return next(new AppError('Price must be a number greater than 0', 400));
+
+  // Validate prices
+  if (req.body.prices) {
+    const { lower, medium, higher } = req.body.prices;
+    if (!Number.isFinite(lower) || lower <= 0 ||
+        !Number.isFinite(medium) || medium <= 0 ||
+        !Number.isFinite(higher) || higher <= 0) {
+      return next(new AppError('All prices must be numbers greater than 0', 400));
+    }
   }
 
   if (req.body.order !== undefined) {
@@ -31,10 +53,25 @@ exports.createCourse = catchAsync(async (req, res, next) => {
 exports.updateCourse = catchAsync(async (req, res, next) => {
   if (req.file) req.body.image = req.file.path;
 
-  if (req.body.price !== undefined) {
-    req.body.price = Number(req.body.price);
-    if (!Number.isFinite(req.body.price) || req.body.price <= 0) {
-      return next(new AppError('Price must be a number greater than 0', 400));
+  // Handle prices object
+  if (req.body.lowerPrice !== undefined || req.body.mediumPrice !== undefined || req.body.higherPrice !== undefined) {
+    req.body.prices = {
+      lower: Number(req.body.lowerPrice),
+      medium: Number(req.body.mediumPrice),
+      higher: Number(req.body.higherPrice),
+    };
+    delete req.body.lowerPrice;
+    delete req.body.mediumPrice;
+    delete req.body.higherPrice;
+  }
+
+  // Validate prices
+  if (req.body.prices) {
+    const { lower, medium, higher } = req.body.prices;
+    if (!Number.isFinite(lower) || lower <= 0 ||
+        !Number.isFinite(medium) || medium <= 0 ||
+        !Number.isFinite(higher) || higher <= 0) {
+      return next(new AppError('All prices must be numbers greater than 0', 400));
     }
   }
 
