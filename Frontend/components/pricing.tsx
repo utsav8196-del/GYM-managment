@@ -123,7 +123,7 @@ export function Pricing() {
                 initial={{ opacity: 0, y: 60 }}
                 animate={isVisible ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.15 * i }}
-                className={`group relative overflow-hidden border text-center transition-all duration-500 ${
+                className={`group relative flex h-full flex-col overflow-hidden border text-center transition-all duration-500 ${
                   plan.featured
                     ? "border-primary bg-primary/5 scale-105"
                     : "border-border bg-card hover:border-primary/40"
@@ -146,28 +146,30 @@ export function Pricing() {
                   <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/30 to-transparent" />
                 </div>
 
-                <div className="p-8">
-                  <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                    {plan.duration}
-                  </p>
-                  <div className="mb-3 flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold text-foreground">{plan.price}</span>
-                    <span className="text-lg text-muted-foreground">{plan.period}</span>
-                  </div>
-                  <p className="mb-6 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
+                <div className="flex h-full flex-col p-8">
+                  <div>
+                    <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                      {plan.duration}
+                    </p>
+                    <div className="mb-3 flex items-baseline justify-center gap-1">
+                      <span className="text-5xl font-bold text-foreground">{plan.price}</span>
+                      <span className="text-lg text-muted-foreground">{plan.period}</span>
+                    </div>
+                    <p className="mb-6 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
 
-                  <div className="mb-8 space-y-4">
-                    {plan.features.map((feature: string) => (
-                      <div key={feature} className="flex items-center gap-3 text-left">
-                        <Check size={16} className="shrink-0 text-primary" />
-                        <span className="text-sm text-muted-foreground">{feature}</span>
-                      </div>
-                    ))}
+                    <div className="mb-8 space-y-4">
+                      {plan.features.map((feature: string) => (
+                        <div key={feature} className="flex items-center gap-3 text-left">
+                          <Check size={16} className="shrink-0 text-primary" />
+                          <span className="text-sm text-muted-foreground">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <Link
                     href="/contact"
-                    className={`inline-block w-full py-3.5 text-center text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
+                    className={`mt-auto inline-block w-full py-3.5 text-center text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
                       plan.featured
                         ? "bg-primary text-primary-foreground hover:bg-primary/80"
                         : "border border-border text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"

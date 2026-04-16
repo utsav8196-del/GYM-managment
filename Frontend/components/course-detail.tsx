@@ -148,7 +148,7 @@ export function CourseDetail({ course }: CourseDetailProps) {
                   initial={{ opacity: 0, y: 60 }}
                   animate={isVisible ? { opacity: 1, y: 0 } : {}}
                   transition={{ duration: 0.6, delay: 0.15 * i }}
-                  className={`group relative overflow-hidden border text-center transition-all duration-500 cursor-pointer ${
+                  className={`group relative flex h-full flex-col overflow-hidden border text-center transition-all duration-500 cursor-pointer ${
                     isSelected
                       ? "border-primary bg-primary/5 scale-105"
                       : "border-border bg-card hover:border-primary/40"
@@ -161,26 +161,28 @@ export function CourseDetail({ course }: CourseDetailProps) {
                     </div>
                   )}
 
-                  <div className={`relative p-8 ${isSelected ? "mt-6" : ""}`}>
-                    <h3 className="text-2xl font-bold uppercase tracking-tight text-foreground mb-2">
-                      {tier.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {tier.description}
-                    </p>
+                  <div className={`relative flex h-full flex-col p-8 ${isSelected ? "mt-6" : ""}`}>
+                    <div>
+                      <h3 className="text-2xl font-bold uppercase tracking-tight text-foreground mb-2">
+                        {tier.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {tier.description}
+                      </p>
 
-                    <div className="mb-6 flex items-baseline justify-center gap-1">
-                      <span className="text-5xl font-bold text-foreground">${price}</span>
-                      <span className="text-lg text-muted-foreground">/month</span>
-                    </div>
+                      <div className="mb-6 flex items-baseline justify-center gap-1">
+                        <span className="text-5xl font-bold text-foreground">${price}</span>
+                        <span className="text-lg text-muted-foreground">/month</span>
+                      </div>
 
-                    <div className="mb-8 space-y-3">
-                      {tier.features.map((feature: string) => (
-                        <div key={feature} className="flex items-center gap-3 text-left">
-                          <Check size={16} className="shrink-0 text-primary" />
-                          <span className="text-sm text-muted-foreground">{feature}</span>
-                        </div>
-                      ))}
+                      <div className="mb-8 space-y-3">
+                        {tier.features.map((feature: string) => (
+                          <div key={feature} className="flex items-center gap-3 text-left">
+                            <Check size={16} className="shrink-0 text-primary" />
+                            <span className="text-sm text-muted-foreground">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <button
@@ -188,7 +190,7 @@ export function CourseDetail({ course }: CourseDetailProps) {
                         e.stopPropagation()
                         handleEnroll(tier.name)
                       }}
-                      className={`inline-block w-full py-3.5 text-center text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
+                      className={`mt-auto inline-block w-full py-3.5 text-center text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
                         isSelected
                           ? "bg-primary text-primary-foreground hover:bg-primary/80"
                           : "border border-border text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground"
