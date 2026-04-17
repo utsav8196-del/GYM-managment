@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { CourseDetail } from "@/components/course-detail"
 
 interface CoursePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 const getApiUrl = () => {
@@ -15,7 +15,7 @@ const getApiUrl = () => {
 }
 
 export async function generateMetadata({ params }: CoursePageProps): Promise<Metadata> {
-  const { id } = params
+  const { id } = await params
   const apiUrl = getApiUrl()
 
   try {
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
 }
 
 export default async function CoursePage({ params }: CoursePageProps) {
-  const { id } = params
+  const { id } = await params
 
   try {
     const apiUrl = getApiUrl()
