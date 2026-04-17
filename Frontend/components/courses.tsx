@@ -9,7 +9,7 @@ import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gym-managment-bac.vercel.app/api/v1"
 
 export function Courses() {
   const { ref } = useScrollAnimation(0.1)
@@ -198,6 +198,7 @@ export function Courses() {
                       setAddForm((prev) => ({ ...prev, type: e.target.value as "personal" | "group" }))
                     }
                     className="w-full border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                    title="Select course type"
                   >
                     <option value="personal">Personal</option>
                     <option value="group">Group</option>

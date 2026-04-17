@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { BookOpen, Calendar, CreditCard, Dumbbell, Loader2, ArrowRight, User2 } from "lucide-react"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gym-managment-two.vercel.app/api/v1"
 
 type Course = {
   _id: string

@@ -24,7 +24,7 @@ type ServiceExtras = {
   highlights: string[]
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gym-managment-two.vercel.app/api/v1"
 
 const iconMap = {
   Dumbbell,
