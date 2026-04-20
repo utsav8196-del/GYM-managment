@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const config = require('./config/env');
 const connectDB = require('./config/db');
-import cors from "cors";
+const cors = require('cors');
 
 app.use(cors({
   origin: "https://gym-managment-4oskcxczg-utsav8196-dels-projects.vercel.app",

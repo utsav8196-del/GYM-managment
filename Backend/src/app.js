@@ -29,7 +29,7 @@ const contactRoutes = require('./routes/contactRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
-const cors = require("cors");
+
 
 app.options("*", cors());
 // Security middleware
